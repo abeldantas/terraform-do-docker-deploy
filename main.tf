@@ -43,7 +43,7 @@ resource "digitalocean_droplet" "app" {
     user        = "root"
     type        = "ssh"
     private_key = file("~/.ssh/id_rsa")
-    timeout     = "2m"
+    timeout     = "1m"
   }
   
   provisioner "remote-exec" {
@@ -74,30 +74,18 @@ resource "digitalocean_droplet" "app" {
       "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
       "sudo systemctl enable --now docker",
 
-       // install docker-compose
-       "curl -L \"https://github.com/docker/compose/releases/download/1.28.5/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
-       "chmod +x /usr/local/bin/docker-compose",
+      // install docker-compose
+      "curl -L \"https://github.com/docker/compose/releases/download/1.28.5/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
+      "chmod +x /usr/local/bin/docker-compose",
+
+      # security
+      "ufw allow 22",
+      "ufw allow 80",
+      "ufw --force enable"
     ]
   }
 }
 
-resource "digitalocean_firewall" "app_firewall" {
-  name = "${var.droplet_name}-firewall-${digitalocean_droplet.app.id}"
-
-  droplet_ids = [digitalocean_droplet.app.id]
-
-  inbound_rule {
-    protocol        = "tcp"
-    port_range      = "80"
-    source_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  inbound_rule {
-    protocol        = "tcp"
-    port_range      = "22"
-    source_addresses = ["0.0.0.0/0", "::/0"]
-  }
-}
 
 resource "null_resource" "delay" {
   provisioner "local-exec" {
@@ -110,7 +98,7 @@ resource "null_resource" "delay" {
 }
 
 resource "null_resource" "provisioning" {
-  depends_on = [null_resource.delay, digitalocean_firewall.app_firewall]
+  depends_on = [null_resource.delay]
 
   connection {
     host        = digitalocean_droplet.app.ipv4_address
@@ -134,4 +122,3 @@ resource "null_resource" "provisioning" {
     droplet_id = digitalocean_droplet.app.id
   }
 }
-
