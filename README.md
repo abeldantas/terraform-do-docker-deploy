@@ -56,10 +56,9 @@ The -auto-approve flag is optional, and is used to skip interactive approval of 
 #### Variables
 
 You can configure the behavior of the script by setting values in the terraform.tfvars file:
-
-do_token - Your DigitalOcean API token.
-droplet_name - The desired name of your droplet.
-ssh_key_fingerprint - The fingerprint of the SSH key you want to use for the droplet.
+ - do_token - Your DigitalOcean API token.
+ - droplet_name - The desired name of your droplet.
+ - ssh_key_fingerprint - The fingerprint of the SSH key you want to use for the droplet.
 
 Like this:
 
