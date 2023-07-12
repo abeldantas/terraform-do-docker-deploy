@@ -110,12 +110,20 @@ resource "null_resource" "provisioning" {
 
   provisioner "local-exec" {
     command = <<-EOF
-    scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no docker-compose.yml root@${digitalocean_droplet.app.ipv4_address}:/root/
-    scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no requirements.txt root@${digitalocean_droplet.app.ipv4_address}:/root/
-    scp -r -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no src/ root@${digitalocean_droplet.app.ipv4_address}:/root/
-    scp -r -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no tests/ root@${digitalocean_droplet.app.ipv4_address}:/root/
-    ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@${digitalocean_droplet.app.ipv4_address} 'cd /root && docker-compose up -d'
-    EOF
+        find . -not -name '*terraform*' -and -not -path '.' -print0 | xargs -0 -I {} scp -r -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no {} root@${digitalocean_droplet.app.ipv4_address}:/root/
+      EOF
+  }
+
+  provisioner "local-exec" {
+    command = "sleep 10"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /root/deploy.sh",
+      "cd /root",
+      "./deploy.sh"
+    ]
   }
   
   triggers = {
